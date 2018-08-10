@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="Gradle: io.realm:realm-android-library-5.0.1">
+    <ANNOTATIONS>
+      <root url="file:///Applications/Chess.app" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/realm-android-library-5.0.1.aar/501490025021da216a312de90031c928/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/realm-android-library-5.0.1.aar/501490025021da216a312de90031c928/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.realm/realm-android-library/5.0.1/681dd1ba83584d5a1924953ae8d5912333c2e198/realm-android-library-5.0.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
