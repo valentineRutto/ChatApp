@@ -14,31 +14,21 @@ public class RealmHelper  {
     this.realm= realm;
    }
 //WRITE
-public void save(final Spacecraft spacecraft)
+public void save(final Messages spacecraft)
 {
     realm.executeTransaction(new Realm.Transaction() {
         @Override
         public void execute(Realm realm) {
 
-            Spacecraft s=realm.copyToRealm(spacecraft);
+             Messages sp=realm.copyToRealm(spacecraft);
 
         }
     });
 
 }
+
 //READ
-public ArrayList<String> retrieve()
-{
-    ArrayList<String> spacecraftNames=new ArrayList<>();
-    RealmResults<Spacecraft> spacecrafts=realm.where(Spacecraft.class).findAll();
 
-    for(Spacecraft s:spacecrafts)
-    {
-        spacecraftNames.add(s.getName());
-    }
-
-    return spacecraftNames;
-}
 
 
 }

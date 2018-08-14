@@ -1,9 +1,12 @@
 package com.example.valentinerutto.chatapp;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,12 +16,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.valentinerutto.chatapp.mRealm.Messages;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -28,59 +36,94 @@ import java.util.ArrayList;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     Realm realm;
-    ArrayList<String> msg=new ArrayList<String>();
-    ArrayAdapter adapter;
-    EditText nametxt;
-    ListView lv;
 
     MqttHelper mqttHelper;
-    TextView msgRecieved;
+    TextView msgRecieved,recmqtt;
     ScrollView mScrollView;
     EditText msgsent;
+    Button btnsave;
+    String sentmessage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
 
+          btnsave=findViewById(R.id.saveBtn);
 
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+//
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//        drawer.addDrawerListener(toggle);
+//        toggle.syncState();
+//
+//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+//        navigationView.setNavigationItemSelectedListener(this);
 
         msgRecieved=findViewById(R.id.recvmsg);
         msgsent = (EditText) findViewById(R.id.msgsent);
         mScrollView=findViewById(R.id.scroll);
-        lv=findViewById(R.id.list);
+
+        Realm.init(getApplicationContext());
+        realm=Realm.getDefaultInstance();
 
 
         startMqtt();
-        fab.setOnClickListener(new View.OnClickListener() {
+        btnsave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String sentmessage= msgsent.getText().toString();
+                sentmessage= msgsent.getText().toString();
                 mqttHelper.sendMessage(sentmessage);
+//                writeToDB(sentmessage);
                 msgsent.setText("");
 
             }
         });
 
-        //setuprealm
-        Realm.init(this);
-        realm = Realm.getDefaultInstance();
+    }
+
+
+
+    private void writeToDB(String mesg) {
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                Messages mesgCont = bgRealm.createObject(Messages.class);
+               mesgCont.setMesgcontent(sentmessage);
+               mesgCont.setClientID(mqttHelper.clientID);
+//               mesgCont.setTopic(mqttHelper.subscriptionTopic);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                // Transaction was a success.
+                Log.v("Database","data inserted");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                // Transaction failed and was automatically canceled.
+                Log.e("Database",error.getMessage());
+            }
+        });
+    }
+    private void showData() {
+        RealmResults<Messages> content=realm.where(Messages.class).findAll();
+        content.load();
+        String output="";
+        for(Messages messages:content){
+            output+=messages.toString();
+        }
+        msgRecieved.setText(output);
+
 
     }
 
@@ -89,6 +132,7 @@ public class MainActivity extends AppCompatActivity
         mqttHelper.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean b, String s) {
+                showData();
 
             }
 
@@ -100,13 +144,17 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 Log.w("Debug", mqttMessage.toString());
-                msgRecieved.setText(mqttMessage.toString());
-                msg.add(mqttMessage.toString());
-                adapter = new ArrayAdapter(MainActivity.this,android.R.layout.simple_list_item_1,msg);
-                lv.setAdapter(adapter);
+               writeToDB(mqttMessage.toString());
+
+                msgRecieved.setText(msgRecieved.getText() + "\n" + mqttMessage.toString());
+                mScrollView.post(   new Runnable() {
+                    @Override
+                    public void run() {
+                        mScrollView.fullScroll(View.FOCUS_DOWN);
+                    }
+                });
 
             }
-
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
@@ -116,20 +164,10 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-
-//    public void sendMessage(View view) {
-//        mqttHelper.sendMessage(this.msgsent.getText().toString());
-//        msgsent.setText("");
-//    }
-
-    public void messageArrived(String message) {
-        msgRecieved.setText(msgRecieved.getText() + "\n" + message.toString());
-        mScrollView.post(   new Runnable() {
-            @Override
-            public void run() {
-                mScrollView.fullScroll(View.FOCUS_DOWN);
-            }
-        });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
     }
 
     @Override
