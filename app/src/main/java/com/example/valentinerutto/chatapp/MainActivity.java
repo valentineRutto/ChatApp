@@ -58,15 +58,6 @@ public class MainActivity extends AppCompatActivity
 
           btnsave=findViewById(R.id.saveBtn);
 
-//
-//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-//        drawer.addDrawerListener(toggle);
-//        toggle.syncState();
-//
-//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-//        navigationView.setNavigationItemSelectedListener(this);
 
         msgRecieved=findViewById(R.id.recvmsg);
         msgsent = (EditText) findViewById(R.id.msgsent);
@@ -82,7 +73,6 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 sentmessage= msgsent.getText().toString();
                 mqttHelper.sendMessage(sentmessage);
-//                writeToDB(sentmessage);
                 msgsent.setText("");
 
             }
@@ -98,7 +88,7 @@ public class MainActivity extends AppCompatActivity
             public void execute(Realm bgRealm) {
                 Messages mesgCont = bgRealm.createObject(Messages.class);
                mesgCont.setMesgcontent(sentmessage);
-               mesgCont.setClientID(mqttHelper.clientID);
+//               mesgCont.setClientID(mqttHelper.clientID);
 //               mesgCont.setTopic(mqttHelper.subscriptionTopic);
             }
         }, new Realm.Transaction.OnSuccess() {

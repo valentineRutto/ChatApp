@@ -20,10 +20,10 @@ public class MqttHelper implements IMqttActionListener {
         final String serverUri = "tcp://broker.hivemq.com:1883";
 
         final String clientID ;
-        final String subscriptionTopic = "chatapp";
+        final String subscriptionTopic = "office";
 
-        final String username = "sendy";
-        final String password = "93a3a43dbac9ddd362702fb525b42a2d";
+        final String username = "";
+        final String password = "";
 
 
         public MqttHelper(Context context){

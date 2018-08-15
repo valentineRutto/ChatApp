@@ -8,7 +8,7 @@ public class Messages extends RealmObject {
 
     private String mesgcontent;
     private String ClientID;
-private  String topic;
+    private  String topic;
 
     public String getMesgcontent() {
         return mesgcontent;
@@ -23,24 +23,27 @@ private  String topic;
         return ClientID;
     }
 
-    public void setClientID(String clientID) {
+    public void setClientID(String clientID)
+    {
         ClientID = clientID;
     }
 
     public String getTopic() {
+
         return topic;
     }
 
-    public void setMesgcontent(String mesgcontent) {
+    public void setMesgcontent(String mesgcontent)
+    {
         this.mesgcontent = mesgcontent;
     }
 
     @Override
     public String toString() {
         return
-                '\n'+ "ClientID='" + ClientID + '\n' +
+//                '\n'+ "ClientID='" + ClientID + '\n' +
 //                ", topic='" + topic + '\n' +
-                 mesgcontent + '\n'
+                mesgcontent + '\n'
                 ;
     }
 
