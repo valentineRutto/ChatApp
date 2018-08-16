@@ -1,30 +1,19 @@
 package com.example.valentinerutto.chatapp;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.valentinerutto.chatapp.mRealm.Messages;
 
@@ -32,10 +21,12 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity
@@ -43,11 +34,13 @@ public class MainActivity extends AppCompatActivity
     Realm realm;
 
     MqttHelper mqttHelper;
-    TextView msgRecieved,recmqtt;
+    TextView msgRecieved;
     ScrollView mScrollView;
     EditText msgsent;
     Button btnsave;
     String sentmessage;
+    String timeStamp;
+    long time;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +59,9 @@ public class MainActivity extends AppCompatActivity
         Realm.init(getApplicationContext());
         realm=Realm.getDefaultInstance();
 
+
+        timeStamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) + "";
+        time = new Date().getTime();
 
         startMqtt();
         btnsave.setOnClickListener(new View.OnClickListener() {
@@ -88,8 +84,9 @@ public class MainActivity extends AppCompatActivity
             public void execute(Realm bgRealm) {
                 Messages mesgCont = bgRealm.createObject(Messages.class);
                mesgCont.setMesgcontent(sentmessage);
-//               mesgCont.setClientID(mqttHelper.clientID);
-//               mesgCont.setTopic(mqttHelper.subscriptionTopic);
+               mesgCont.setClientID(mqttHelper.clientID);
+               mesgCont.setTopic(mqttHelper.subscriptionTopic);
+               mesgCont.setTime(getTime());
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -116,6 +113,10 @@ public class MainActivity extends AppCompatActivity
 
 
     }
+  private String getTime(){
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+      return dateFormat.format(new Date());
+  }
 
     private void startMqtt() {
         mqttHelper = new MqttHelper(getApplicationContext());
@@ -136,7 +137,7 @@ public class MainActivity extends AppCompatActivity
                 Log.w("Debug", mqttMessage.toString());
                writeToDB(mqttMessage.toString());
 
-                msgRecieved.setText(msgRecieved.getText() + "\n" + mqttMessage.toString());
+                msgRecieved.setText( msgRecieved.getText() + "\n" + mqttMessage.toString());
                 mScrollView.post(   new Runnable() {
                     @Override
                     public void run() {
