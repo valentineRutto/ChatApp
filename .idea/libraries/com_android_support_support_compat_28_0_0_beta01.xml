@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="com.android.support:support-compat-28.0.0-beta01">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0-beta01.aar/f801f9e9e54c33989293e86ca142c042/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0-beta01.aar/f801f9e9e54c33989293e86ca142c042/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
