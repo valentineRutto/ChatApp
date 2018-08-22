@@ -23,5 +23,5 @@ public class SensorServiceTest {
         Intent serviceIntent =
                 new Intent(InstrumentationRegistry.getTargetContext(),
                         SensorService.class);
-
+    }
 }
