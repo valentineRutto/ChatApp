@@ -22,8 +22,8 @@ public class MqttHelper implements IMqttActionListener {
         final String clientID ;
         final String subscriptionTopic = "office";
 
-        final String username = "";
-        final String password = "";
+        final String username = "sendy";
+        final String password = "93a3a43dbac9ddd362702fb525b42a2d";
 
 
         public MqttHelper(Context context){

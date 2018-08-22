@@ -26,7 +26,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".TestRealm"></activity>
+
+        <service
+            android:name=".Service.SensorService"
+            android:enabled="true" >
+        </service>
+
+        <receiver
+            android:name=".Service.SensorRestarterBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:label="RestartServiceWhenStopped">
+            <intent-filter>
+                <action android:name="ac.in.ActivityRecognition.RestartSensor"/>
+            </intent-filter>
+        </receiver>
+
+
     </application>
 
 </manifest>
