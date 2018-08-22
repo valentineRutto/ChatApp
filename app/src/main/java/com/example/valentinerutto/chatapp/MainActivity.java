@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity
     Realm realm;
 
     MqttHelper mqttHelper;
-    TextView msgRecieved;
+    TextView msgRecieved,mymesssage;
     ScrollView mScrollView;
     EditText msgsent;
     Button btnsave;
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity
 
 
         msgRecieved=findViewById(R.id.recvmsg);
+//        mymesssage=findViewById(R.id.message_body);
         msgsent = (EditText) findViewById(R.id.msgsent);
         mScrollView=findViewById(R.id.scroll);
 
@@ -138,6 +139,7 @@ public class MainActivity extends AppCompatActivity
                writeToDB(mqttMessage.toString());
 
                 msgRecieved.setText( msgRecieved.getText() + "\n" + mqttMessage.toString());
+//                ymesssage.setText( msgRecieved.getText() + "\n" + mqttMessage.toString());
                 mScrollView.post(   new Runnable() {
                     @Override
                     public void run() {
