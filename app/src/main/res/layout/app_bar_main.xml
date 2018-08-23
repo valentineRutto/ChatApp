@@ -35,7 +35,6 @@
             android:layout_height="wrap_content"
             >
 
-
         </ListView>
 
         <ScrollView
@@ -74,7 +73,6 @@
             </RelativeLayout>
 
         </ScrollView>
-
 
 
 

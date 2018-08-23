@@ -3,7 +3,6 @@ package com.example.valentinerutto.chatapp;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,8 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -27,9 +28,9 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -38,16 +39,16 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     Realm realm;
     MqttHelper mqttHelper;
-    TextView msgRecieved,mymesssage;
+    TextView msgRecieved, mymesssage;
     ScrollView mScrollView;
     EditText msgsent;
     Button btnsave;
     String sentmessage;
-    String timeStamp;
-    long time;
     Intent mServiceIntent;
     private SensorService mSensorService;
     Context ctx;
+
+
 
     public Context getCtx() {
         return ctx;
@@ -60,91 +61,98 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-ctx=this;
-mSensorService=new SensorService();
-mServiceIntent =new Intent(getCtx(),mSensorService.getClass());
-if(!isMyServiceRunning(mSensorService.getClass())){
-    startService(mServiceIntent);
-}
-          btnsave=findViewById(R.id.saveBtn);
+       //service
+        ctx = this;
+        mSensorService = new SensorService();
+        mServiceIntent = new Intent(getCtx(), mSensorService.getClass());
+        if (!isMyServiceRunning(mSensorService.getClass())) {
+            startService(mServiceIntent);
+        }
 
-
-        msgRecieved=findViewById(R.id.recvmsg);
-//        mymesssage=findViewById(R.id.message_body);
+        //layouts
+        btnsave = findViewById(R.id.saveBtn);
+        msgRecieved = findViewById(R.id.recvmsg);
         msgsent = (EditText) findViewById(R.id.msgsent);
-        mScrollView=findViewById(R.id.scroll);
+        mScrollView = findViewById(R.id.scroll);
 
+
+
+        //Realm
         Realm.init(getApplicationContext());
-        realm=Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance();
 
-
-        timeStamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) + "";
-        time = new Date().getTime();
 
         startMqtt();
-        btnsave.setOnClickListener(new View.OnClickListener() {
+
+
+        //     Sendmessage to broker
+             btnsave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sentmessage= msgsent.getText().toString();
+                sentmessage = msgsent.getText().toString();
                 mqttHelper.sendMessage(sentmessage);
                 msgsent.setText("");
 
             }
         });
 
+
+
     }
 
- private  boolean isMyServiceRunning(Class<?> serviceClass){
-     ActivityManager manager =(ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-     for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-         if (serviceClass.getName().equals(service.service.getClassName())){
-             Log.i("isMyServiceRunning",true+"");
-             return true;
-         }
-     }
-     Log.i("isMyServiceRunning", false+"");
-     return false;
- }
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i("isMyServiceRunning", true + "");
+                return true;
+            }
+        }
+        Log.i("isMyServiceRunning", false + "");
+        return false;
+    }
 
     private void writeToDB(String mesg) {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
                 Messages mesgCont = bgRealm.createObject(Messages.class);
-               mesgCont.setMesgcontent(sentmessage);
-               mesgCont.setClientID(mqttHelper.clientID);
-               mesgCont.setTopic(mqttHelper.subscriptionTopic);
-               mesgCont.setTime(getTime());
+                mesgCont.setMesgcontent(sentmessage);
+                mesgCont.setClientID(mqttHelper.clientID);
+                mesgCont.setTopic(mqttHelper.subscriptionTopic);
+                mesgCont.setTime(getTime());
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
                 // Transaction was a success.
-                Log.v("Database","data inserted");
+                Log.v("Database", "data inserted");
             }
         }, new Realm.Transaction.OnError() {
             @Override
             public void onError(Throwable error) {
                 // Transaction failed and was automatically canceled.
-                Log.e("Database",error.getMessage());
+                Log.e("Database", error.getMessage());
             }
         });
     }
+
     private void showData() {
-        RealmResults<Messages> content=realm.where(Messages.class).findAll();
+        RealmResults<Messages> content = realm.where(Messages.class).findAll();
         content.load();
-        String output="";
-        for(Messages messages:content){
-            output+=messages.toString();
+        String output = "";
+        for (Messages messages : content) {
+            output += messages.toString();
         }
         msgRecieved.setText(output);
 
 
     }
-  private String getTime(){
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-      return dateFormat.format(new Date());
-  }
+
+    private String getTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        return dateFormat.format(new Date());
+    }
 
     private void startMqtt() {
         mqttHelper = new MqttHelper(getApplicationContext());
@@ -163,11 +171,11 @@ if(!isMyServiceRunning(mSensorService.getClass())){
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 Log.w("Debug", mqttMessage.toString());
-               writeToDB(mqttMessage.toString());
+                writeToDB(mqttMessage.toString());
 
-                msgRecieved.setText( msgRecieved.getText() + "\n" + mqttMessage.toString());
-//                ymesssage.setText( msgRecieved.getText() + "\n" + mqttMessage.toString());
-                mScrollView.post(   new Runnable() {
+                msgRecieved.setText(msgRecieved.getText() + "\n" + mqttMessage.toString());
+
+                mScrollView.post(new Runnable() {
                     @Override
                     public void run() {
                         mScrollView.fullScroll(View.FOCUS_DOWN);
@@ -187,7 +195,7 @@ if(!isMyServiceRunning(mSensorService.getClass())){
     @Override
     protected void onDestroy() {
         stopService(mServiceIntent);
-        Log.i("MAINACT","onDestroy");
+        Log.i("MAINACT", "onDestroy");
         super.onDestroy();
         realm.close();
     }

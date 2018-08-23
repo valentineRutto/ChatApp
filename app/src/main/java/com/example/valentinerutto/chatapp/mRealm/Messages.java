@@ -8,13 +8,13 @@ import io.realm.RealmObject;
 
 public class Messages extends RealmObject {
 
-    private String mesgcontent;
+    private  String mesgcontent;
+    private  String Topic;
     private String ClientID;
-    private String Topic;
     private String time;
 
 
-    public String getMesgcontent() {
+    public  String getMesgcontent() {
         return mesgcontent;
     }
 
@@ -31,7 +31,7 @@ public class Messages extends RealmObject {
         ClientID = clientID;
     }
 
-    public String getTopic() {
+    public  String getTopic() {
         return Topic;
     }
 
